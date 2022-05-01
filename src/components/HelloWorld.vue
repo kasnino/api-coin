@@ -1,58 +1,145 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
+  <div>
+    <v-row class="text-center">
+      <v-col cols="12" class="">
+        <v-data-table
+          :headers="columnas"
+          :items="info.data"
+          class="elevation-5 rounded-0"
+          :items-per-page="20"
+          :search="search"
+          :custom-filter="filterOnlyCapsText"
+          dark
+        >
+          <template v-slot:top>
+            <v-text-field
+              v-model="search"
+              label="Search Coins"
+              class="mx-4 mt-0"
+            ></v-text-field>
+          </template>
+          <!-- headers :: columnas -->
+          <template v-slot:item.image="{ item }">
+            <div class="p-2">
+              <ul>
+                <li>
+                  <v-img
+                    :src="item.image"
+                    :alt="item.name"
+                    height="42px"
+                    width="42px"
+                  ></v-img>
+                </li>
+                <li>
+                  <v-chip
+                    color="cyan"
+                    dark
+                    small
+                    class="ml-4"
+                    style="color: black"
+                  >
+                    {{ item.symbol }}
+                  </v-chip>
+                </li>
+              </ul>
+            </div>
+          </template>
+
+          <template v-slot:item.current_price="{ item }">
+               <span color="green" class="text-green ">  {{ formatPrice(item.current_price)}} <strong class="text-white "> USD </strong> </span>
+          </template>
+
+           
+
+
+          <template v-slot:item.last_updated="{ item }">
+               <span color="green" class="text-green ">  {{ formatDate(item.last_updated) }} </span>
+          </template>
+        </v-data-table>
+
+        
+      </v-col>
+    </v-row>
   </div>
 </template>
 
 <script>
+import axios from "axios";
 export default {
-  name: 'HelloWorld',
-  props: {
-    msg: String
-  }
-}
-</script>
+  name: "HelloWorld",
+  data: () => ({
+    info: [],
+    search: "",
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-h3 {
-  margin: 40px 0 0;
-}
+    columnas: [
+      {
+        text: "ID",
+        align: "left",
+        sortable: false,
+        value: "market_cap_rank",
+      },
+      { text: "Logo", align: "left", value: "image", sortable: false },
+      { text: "Nombre", align: "left", value: "name", sortable: false },
+      { text: "Precio", align: "left", value: "current_price" },
+      { text: "MAXPrecio", align: "left", value: "market_cap" },
+      { text: "Precio Cambiado 24h", align: "left", value: "price_change_24h" },
+      { text: "Ultima Actualizacion", align: "left", value: "last_updated" },
+    ],
+    desserts: [
+      {
+        name: "Frozen Yogurt",
+        image:
+          "https://assets.coingecko.com/coins/images/1/large/bitcoin.png?1547033579",
+        calories: 159,
+        fat: 6.0,
+        carbs: 24,
+        protein: 4.0,
+        iron: "1%",
+      },
+      {
+        name: "Frozen Yogurt",
+        image:
+          "https://assets.coingecko.com/coins/images/1/large/bitcoin.png?1547033579",
+        calories: 159,
+        fat: 6.0,
+        carbs: 24,
+        protein: 4.0,
+        iron: "1%",
+      },
+    ],
+  }),
+  mounted() {
+    axios
+      .get("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd")
+      .then((response) => (this.info = response));
+  },
+  methods:
+   {
+   formatPrice(value) {
+        let val = (value/1).toFixed(2).replace('.', ',')
+        return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")
+    },
+      formatDate(date) {
+    return new Intl.DateTimeFormat('es-US', { dateStyle: 'long' }).format(new Date(date))
+  },
+  
+    GetDatosCoins() {},
+  }
+};
+</script>
+<style lang="scss" scoped>
 ul {
-  list-style-type: none;
-  padding: 0;
+  display: flex;
+  justify-content: left;
+  align-items: center;
+  padding: 3px;
 }
-li {
+ul > li {
   display: inline-block;
-  margin: 0 10px;
+  /* You can also add some margins here to make it look prettier */
 }
-a {
-  color: #42b983;
+
+.text-green{
+  color:cyan;
 }
 </style>
